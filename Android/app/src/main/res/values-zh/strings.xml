@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScenarioAPI-Demo</string>
+    <string name="app_lead_singer">主唱</string>
+    <string name="app_co_singer">合唱</string>
+    <string name="app_audience">观众</string>
+    <string name="app_no_lyric">当前没有歌词</string>
+    <string name="app_join_chorus">加入合唱</string>
+    <string name="app_leave_chorus">离开合唱</string>
+    <string name="app_original">原唱</string>
+    <string name="app_acc">伴奏</string>
+    <string name="app_daochang">导唱</string>
+    <string name="app_no_premission">不能做这项操作</string>
+    <string name="app_load_music">加载歌曲</string>
+    <string name="app_remove_music">移除歌曲</string>
+    <string name="app_mic_on">开麦</string>
+    <string name="app_mic_off">关麦</string>
+    <string name="app_choose_scene_tag">请选择体验场景!</string>
+    <string name="app_chat">语聊</string>
+    <string name="app_show">秀场</string>
+    <string name="app_input_channel_name">请输入 channel name</string>
+    <string name="app_patron_tag">榜一大哥</string>
+    <string name="app_hostess">主播小姐姐</string>
+    <string name="app_show_host_tag">秀场主播</string>
+    <string name="app_interactive_audience_tag">连麦观众</string>
+    <string name="app_start_enjoy_tag">开始体验</string>
+    <string name="app_audio_dump">Audio Dump</string>
+    <string name="app_virtual_souncard">虚拟声卡</string>
+    <string name="app_virtual_close">关闭</string>
+    <string name="app_virtual_souncard_magnetic">磁性</string>
+    <string name="app_virtual_souncard_pleasant">悦耳</string>
+</resources>
