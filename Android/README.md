@@ -46,7 +46,7 @@
     implementation "io.agora.rtc:agora-special-full:4.1.1.29"
   }
   ```
-  将[**lib_audioscenarioapi**](Android/lib_audioscenarioapi)集成进入您的工程，或将其中的代码文件拷贝进您的工程
+  将[**lib_audioscenarioapi**](lib_audioscenarioapi)集成进入您的工程，或将其中的代码文件拷贝进您的工程
   
 - 3.2 初始化 RtcEngine 实例，加载音频算法插件库
   ```kotlin
