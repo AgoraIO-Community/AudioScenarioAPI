@@ -27,7 +27,7 @@
 
     ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_3.jpg)
 
-- 2.2 在项目的 [**gradle.properties**](gradle.properties) 里填写需要的声网 App ID 和 App 证书、RESTFUL KEY 和 SECRET
+- 2.2 在项目的 [**gradle.properties**](gradle.properties) 里填写需要的声网 App ID 和 App 证书
 
   ```
   # RTC SDK key Config
@@ -46,7 +46,7 @@
     implementation "io.agora.rtc:agora-special-full:4.1.1.29"
   }
   ```
-  将[**lib_audioscenarioapi**](/lib_audioscenarioapi)集成进入您的工程，或将其中的代码文件拷贝进您的工程
+  将[**lib_audioscenarioapi**](Android/lib_audioscenarioapi)集成进入您的工程，或将其中的代码文件拷贝进您的工程
   
 - 3.2 初始化 RtcEngine 实例，加载音频算法插件库
   ```kotlin
@@ -68,7 +68,7 @@
   ```
 
 - 3.4 加入频道前，根据业务场景和身份，设置对应的音频最佳实践，目前支持以下4种配置组合
-  ⚠️：在加频道前配置一次即可，音频设置不随加入/退出频道发生改变
+  ⚠️在加频道前配置一次即可，音频设置不随加入/退出频道发生改变
   ```kotlin
   // 1v1 场景，身份为主叫（发起呼叫方）
   audioScenarioApi.setAudioScenario(SceneType.Chat, AudioScenarioType.Chat_Caller)
