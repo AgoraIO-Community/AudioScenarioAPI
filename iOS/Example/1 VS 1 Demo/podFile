@@ -1,0 +1,7 @@
+use_frameworks!
+
+platform :ios, '13.0'
+
+target '1 VS 1 Demo' do
+ pod 'AgoraRtcEngine_Special_iOS', '4.1.1.29'
+end
