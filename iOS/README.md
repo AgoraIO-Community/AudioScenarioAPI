@@ -47,7 +47,7 @@
   // 项目 podFile 文件内
   pod 'AgoraRtcEngine_Special_iOS', '4.1.1.29'
   ```
-  将[**audioscenarioapi**](Classs)集成进入您的工程
+  将[**audioscenarioapi**](Classes)集成进入您的工程
 
 - 3.2 在初始化 RtcEngine 实例后创建 Audio Scenario API 实例
   ```kotlin
