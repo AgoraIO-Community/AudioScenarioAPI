@@ -185,8 +185,8 @@ struct RecommendAudioScenarioSetting {
     
     static let HostBluetooth = AudioScenarioSetting(
         sf: true,
-        aiaec: .Off,
-        anis: .Off,
+        aiaec: .HostBlueTooth,
+        anis: .Normal,
         agcType: .Normal,
         codec: 128000,
         fecType: .Auto,
@@ -196,7 +196,7 @@ struct RecommendAudioScenarioSetting {
     
     static let AudienceSpeaker = AudioScenarioSetting(
         sf: true,
-        aiaec: .Normal,
+        aiaec: .AudienceSpeaker,
         anis: .Strong,
         agcType: .BigGain,
         codec: 18000,
@@ -207,7 +207,7 @@ struct RecommendAudioScenarioSetting {
     
     static let AudienceWired = AudioScenarioSetting(
         sf: true,
-        aiaec: .Off,
+        aiaec: .AudienceWired,
         anis: .Strong,
         agcType: .Normal,
         codec: 18000,
@@ -218,7 +218,7 @@ struct RecommendAudioScenarioSetting {
     
     static let AudienceBluetooth = AudioScenarioSetting(
         sf: true,
-        aiaec: .Off,
+        aiaec: .AudienceBlueTooth,
         anis: .Strong,
         agcType: .Normal,
         codec: 18000,
@@ -231,43 +231,51 @@ struct RecommendAudioScenarioSetting {
 enum ANISType: Int {
     case Off = 0
     case Strong = 1
+    case Normal = 2
 }
 
 enum AIAECType {
     case Off
     case Normal
     case LowAggressive
+    case AudienceSpeaker
+    case AudienceWired
+    case AudienceBlueTooth
+    case HostBlueTooth
     
     var flag: Int {
         switch self {
-        case .Off:
-            return -1
-        case .Normal:
-            return 1
-        case .LowAggressive:
-            return -1
+        case .Off:                  return -1
+        case .Normal:               return 1
+        case .LowAggressive:        return -1
+        case .AudienceSpeaker:      return 1
+        case .AudienceWired:        return 0
+        case .AudienceBlueTooth:    return 0
+        case .HostBlueTooth:        return 0
         }
     }
     
     var route: Int {
         switch self {
-        case .Off:
-            return -1
-        case .Normal:
-            return 11
-        case .LowAggressive:
-            return -1
+        case .Off:                  return -1
+        case .Normal:               return 11
+        case .LowAggressive:        return -1
+        case .AudienceSpeaker:      return 11
+        case .AudienceWired:        return 10
+        case .AudienceBlueTooth:    return 10
+        case .HostBlueTooth:        return 10
         }
     }
     
     var aggressive: Int {
         switch self {
-        case .Off:
-            return -1
-        case .Normal:
-            return -1
-        case .LowAggressive:
-            return 0
+        case .Off:                  return -1
+        case .Normal:               return -1
+        case .LowAggressive:        return 0
+        case .AudienceSpeaker:      return -1
+        case .AudienceWired:        return -1
+        case .AudienceBlueTooth:    return -1
+        case .HostBlueTooth:        return 0
         }
     }
 }
@@ -396,6 +404,9 @@ extension AudioScenarioApi: AgoraRtcEngineDelegate {
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.GirlWired)
             case .Show_Host:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostWired)
+                let options = AgoraAdvancedAudioOptions()
+                options.audioProcessingChannels = .channelstereo
+                rtcEngine.setAdvancedAudioOptions(options)
             case .Show_InteractiveAudience:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceWired)
             }
@@ -408,6 +419,9 @@ extension AudioScenarioApi: AgoraRtcEngineDelegate {
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.GirlSpeaker)
             case .Show_Host:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostSpeaker)
+                let options = AgoraAdvancedAudioOptions()
+                options.audioProcessingChannels = .channelsMono
+                rtcEngine.setAdvancedAudioOptions(options)
             case .Show_InteractiveAudience:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceSpeaker)
             }
@@ -420,6 +434,9 @@ extension AudioScenarioApi: AgoraRtcEngineDelegate {
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.GirlBluetooth)
             case .Show_Host:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostBluetooth)
+                let options = AgoraAdvancedAudioOptions()
+                options.audioProcessingChannels = .channelsMono
+                rtcEngine.setAdvancedAudioOptions(options)
             case .Show_InteractiveAudience:
                 setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceBluetooth)
             }
@@ -444,22 +461,31 @@ extension AudioScenarioApi: AgoraRtcEngineDelegate {
             } else if $0 == .Off && !sf {
                 rtcEngine.setParameters("{\"che.audio.sf.nsEnable\": 0}")
                 rtcEngine.setParameters("{\"che.audio.ans.enable\": false}")
+            } else if $0 == .Normal {
+                rtcEngine.setParameters("{\"che.audio.sf.ainsToLoadFlag\": 0}")
+                rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\": 10}")
+                rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\": 11}")
             }
         }
         
         aiaec.map {
             switch $0 {
-            case .Normal:
+            case .Normal, .HostBlueTooth:
+                rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\": \($0.flag)}")
+                rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\": \($0.route)}")
+                rtcEngine.setParameters("{\"che.audio.sf.nlpAggressiveness\": \($0.aggressive)}")
+            case .AudienceWired, .AudienceBlueTooth, .AudienceSpeaker:
                 rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\": \($0.flag)}")
                 rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\": \($0.route)}")
             case .LowAggressive:
                 rtcEngine.setParameters("{\"che.audio.sf.nlpAggressiveness\": \($0.aggressive)}")
             case .Off:
-                if !sf {
-                    rtcEngine.setParameters("{\"che.audio.sf.nlpEnable\": 0}")
-                    rtcEngine.setParameters("{\"che.audio.aec.enable\": false}")
-                }
-            }
+//                if !sf {
+//                    rtcEngine.setParameters("{\"che.audio.sf.nlpEnable\": 0}")
+//                    rtcEngine.setParameters("{\"che.audio.aec.enable\": false}")
+//                }
+                break
+            
         }
         
         agcType.map {
