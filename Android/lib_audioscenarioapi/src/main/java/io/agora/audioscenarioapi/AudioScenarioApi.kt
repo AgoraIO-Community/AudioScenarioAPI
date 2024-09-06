@@ -5,6 +5,9 @@ import io.agora.audioscenarioapi.report.APIType
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
+import io.agora.rtc2.audio.AdvancedAudioOptions
+
+
 
 /**
  * 场景类型
@@ -65,13 +68,18 @@ enum class EarPhoneType constructor(val presetValue: Int) {
 
 enum class ANISType(val value: Int) {
     Off(0),
-    Strong(1)
+    Strong(1),
+    Normal(2)
 }
 
 enum class AIAECType(val flag: Int, val route: Int, val aggressive: Int) {
     Off(-1, -1, -1),
     Normal(1, 11, -1),
-    LowAggressive(-1, -1, 0)
+    LowAggressive(-1, -1, 0),
+    AudienceSpeaker(1, 11, -1),
+    AudienceWired(0, 10, -1),
+    AudienceBlueTooth(0, 10, -1),
+    HostBlueTooth(0, 10, 0)
 }
 
 enum class AGCType(val enable: Boolean, val targetlevelBov: Int, val compressionGain: Int) {
@@ -187,8 +195,8 @@ object RecommendAudioScenarioSetting {
 
     val HostBluetooth = AudioScenarioSetting(
         sf = true,
-        aiaec = AIAECType.Off,
-        anis = ANISType.Off,
+        aiaec = AIAECType.HostBlueTooth,
+        anis = ANISType.Normal,
         agcType = AGCType.Normal,
         codec = 128000,
         fecType = FECType.Auto,
@@ -198,7 +206,7 @@ object RecommendAudioScenarioSetting {
 
     val AudienceSpeaker = AudioScenarioSetting(
         sf = true,
-        aiaec = AIAECType.Normal,
+        aiaec = AIAECType.AudienceSpeaker,
         anis = ANISType.Strong,
         agcType = AGCType.BigGain,
         codec = 18000,
@@ -209,7 +217,7 @@ object RecommendAudioScenarioSetting {
 
     val AudienceWired = AudioScenarioSetting(
         sf = true,
-        aiaec = AIAECType.Off,
+        aiaec = AIAECType.AudienceWired,
         anis = ANISType.Strong,
         agcType = AGCType.Normal,
         codec = 18000,
@@ -220,7 +228,7 @@ object RecommendAudioScenarioSetting {
 
     val AudienceBluetooth = AudioScenarioSetting(
         sf = true,
-        aiaec = AIAECType.Off,
+        aiaec = AIAECType.AudienceBlueTooth,
         anis = ANISType.Strong,
         agcType = AGCType.Normal,
         codec = 18000,
@@ -321,6 +329,8 @@ class AudioScenarioApi(rtcEngine: RtcEngine): IRtcEngineEventHandler() {
                     }
                     AudioScenarioType.Show_Host -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostWired)
+                        val options = AdvancedAudioOptions(AdvancedAudioOptions.AudioProcessingChannelsEnum.AGORA_AUDIO_STEREO_PROCESSING)
+                        rtcEngine.SetAdvancedAudioOptions(options)
                     }
                     AudioScenarioType.Show_InteractiveAudience -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceWired)
@@ -339,6 +349,8 @@ class AudioScenarioApi(rtcEngine: RtcEngine): IRtcEngineEventHandler() {
                     }
                     AudioScenarioType.Show_Host -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostSpeaker)
+                        val options = AdvancedAudioOptions(AdvancedAudioOptions.AudioProcessingChannelsEnum.AGORA_AUDIO_MONO_PROCESSING)
+                        rtcEngine.SetAdvancedAudioOptions(options)
                     }
                     AudioScenarioType.Show_InteractiveAudience -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceSpeaker)
@@ -357,6 +369,8 @@ class AudioScenarioApi(rtcEngine: RtcEngine): IRtcEngineEventHandler() {
                     }
                     AudioScenarioType.Show_Host -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.HostBluetooth)
+                        val options = AdvancedAudioOptions(AdvancedAudioOptions.AudioProcessingChannelsEnum.AGORA_AUDIO_MONO_PROCESSING)
+                        rtcEngine.SetAdvancedAudioOptions(options)
                     }
                     AudioScenarioType.Show_InteractiveAudience -> {
                         setAudioSettingsWithConfig(RecommendAudioScenarioSetting.AudienceBluetooth)
@@ -403,14 +417,22 @@ class AudioScenarioApi(rtcEngine: RtcEngine): IRtcEngineEventHandler() {
                 rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\": 12}")
                 rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\": 11}")
             } else if (it == ANISType.Off && !sf) {
-                rtcEngine.setParameters("{\"che.audio.sf.nsEnable\": 0}")
                 rtcEngine.setParameters("{\"che.audio.ans.enable\": false}")
+            } else if (it == ANISType.Normal) {
+                rtcEngine.setParameters("{\"che.audio.sf.ainsToLoadFlag\": 0}")
+                rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\": 10}")
+                rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\": 11}")
             } else { }
         }
 
         aiaec?.let {
             when (it) {
-                AIAECType.Normal -> {
+                AIAECType.Normal, AIAECType.HostBlueTooth -> {
+                    rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\": ${it.flag}}")
+                    rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\": ${it.route}}")
+                    rtcEngine.setParameters("{\"che.audio.sf.nlpAggressiveness\": ${it.aggressive}}")
+                }
+                AIAECType.AudienceWired, AIAECType.AudienceBlueTooth, AIAECType.AudienceSpeaker -> {
                     rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\": ${it.flag}}")
                     rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\": ${it.route}}")
                 }
@@ -418,10 +440,10 @@ class AudioScenarioApi(rtcEngine: RtcEngine): IRtcEngineEventHandler() {
                     rtcEngine.setParameters("{\"che.audio.sf.nlpAggressiveness\": ${it.aggressive}}")
                 }
                 AIAECType.Off -> {
-                    if (!sf) {
-                        rtcEngine.setParameters("{\"che.audio.sf.nlpEnable\": 0}")
-                        rtcEngine.setParameters("{\"che.audio.aec.enable\": false}")
-                    } else { }
+//                    if (!sf) {
+//                        rtcEngine.setParameters("{\"che.audio.sf.nlpEnable\": 0}")
+//                        rtcEngine.setParameters("{\"che.audio.aec.enable\": false}")
+//                    } else { }
                 }
             }
         }
